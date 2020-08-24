@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <title>wit</title>
+    <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/Navigation-Clean.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+
+  <body>
+    <nav class="navbar navbar-light navbar-expand-md navigation-clean">
+      <div class="container">
+        <a class="navbar-brand" href="#">Message with a hope</a
+        ><button
+          data-toggle="collapse"
+          class="navbar-toggler"
+          data-target="#navcol-1"
+        >
+          <span class="sr-only">Toggle navigation</span
+          ><span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navcol-1">
+          <ul class="nav navbar-nav ml-auto">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link active" href="#">Nearest Hospitals</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+      #map {
+        height: 80%;
+        text-align: center;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: "Roboto", "sans-serif";
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      .right-panel {
+        font-family: "Roboto", "sans-serif";
+        line-height: 30px;
+        padding-left: 10px;
+      }
+
+      .right-panel select,
+      .right-panel input {
+        font-size: 15px;
+      }
+
+      .right-panel select {
+        width: 100%;
+      }
+
+      .right-panel i {
+        font-size: 12px;
+      }
+      .right-panel {
+        height: 100%;
+        float: right;
+        width: 390px;
+        overflow: auto;
+        flex-basis: auto;
+      }
+      #map {
+        margin-right: 400px;
+      }
+      floating-panel {
+        background: #fff;
+        padding: 5px;
+        font-size: 14px;
+        font-family: Arial;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 2px rgba(33, 33, 33, 0.4);
+        display: none;
+      }
+      @media print {
+        #map {
+          height: 500px;
+          margin: 0;
+        }
+        .right-panel {
+          float: none;
+          width: auto;
+        }
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <div class="container-fluid">
+      <% places.forEach((place,index) => { %>
+      <div class="row" style="min-height: 500px;">
+        <div class="col" style=" flex-basis: auto;">
+          <div style="display: inline-block">
+            <h5><%=place.name %></h5>
+            <button class="btn btn-primary" id="directions-button<%=index %>">
+              Get Directions
+            </button>
+          </div>
+
+          <div id="right-panel<%=index %>" class="right-panel"></div>
+        </div>
+        <div class="col" style="min-height: 200px; ">
+          <div
+            class="overflow-auto"
+            id="map<%=index %>"
+            style="height:400px;width:800px;"
+          ></div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <script>
+      var lat = <%= lat %>
+      var lng = <%= lng %>
+      console.log(lat)
+      console.log(lng)
+      // console.log(origin_str)
+    </script>
+    <script>
+      function initMap() {
+        // let places = [];
+        // console.log(places);
+
+        let places_json = <%- places_json %>
+
+        console.log(places_json);
+
+         // let origin_str = "24.936716,67.0764208"; // HARD CODED
+        let origin = {
+          lat: lat,
+          lng: lng
+        };
+        var myLatLng, marker, map;
+        places_json.forEach((place, index) => {
+          var directionsRenderer = new google.maps.DirectionsRenderer();
+          var directionsService = new google.maps.DirectionsService();
+          console.log("map" + index);
+          console.log(place.geometry.location);
+          myLatLng = {
+            lat: place.geometry.location.lat,
+            lng: place.geometry.location.lng,
+          };
+          let destination = myLatLng;
+          map = new google.maps.Map(document.getElementById("map" + index), {
+            zoom: 15,
+            center: myLatLng,
+          });
+          directionsRenderer.setMap(map);
+          directionsRenderer.setPanel(
+            document.getElementById("right-panel" + index)
+          );
+          console.log(document.getElementById("right-panel" + index));
+          // var control = document.getElementById('floating-panel'+index);
+          // control.style.display = 'block';
+          // map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
+          var onChangeHandler = function() {
+            calculateAndDisplayRoute(
+              directionsService,
+              directionsRenderer,
+              index,
+              origin,
+              destination
+            );
+          };
+
+          document
+            .getElementById("directions-button" + index)
+            .addEventListener("click", onChangeHandler);
+          // document.getElementById('directions-button'+index).addEventListener('onclick', onChangeHandler);
+          marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            title: "Hello World!",
+          });
+          // console.log(place);
+        });
+      }
+      function calculateAndDisplayRoute(
+        directionsService,
+        directionsRenderer,
+        index,
+        origin,
+        destination
+      ) {
+        var start = origin;
+        var end = destination;
+        console.log(origin);
+        console.log(destination);
+        console.log("Index in CalculateAndDisplayRoute " + index);
+        directionsService.route(
+          {
+            origin: start,
+            destination: end,
+            travelMode: "DRIVING",
+          },
+          function(response, status) {
+            if (status === "OK") {
+              directionsRenderer.setDirections(response);
+              console.log(response);
+            } else {
+              window.alert("Directions request failed due to " + status);
+            }
+          }
+        );
+      }
+    </script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBY_sNxrT_z5kgLb65F6xLSe-OQ83J9DtM&callback=initMap"
+    ></script>
+
+    <script async defer src="/js/jquery.min.js"></script>
+    <script async defer src="/bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>

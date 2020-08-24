@@ -1,0 +1,1 @@
+Contains the messages to be shown. Currently just stores json file.

@@ -1,0 +1,1 @@
+Contains the ejs files that render to the main Heroku page
